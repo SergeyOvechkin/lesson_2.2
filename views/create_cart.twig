@@ -1,0 +1,55 @@
+
+{% include  '/twig_templates/header.twig' %}
+			
+			
+<div data-router_main="router">				
+     <div class="container-fluid" data-create_cart="container" style="margin-top: 10px;">
+	    <div class="row">
+			<div class="col-12" >
+		
+		
+				<form action="/create/cart" method="post" enctype="multipart/form-data" name="create_cart">
+					<div class="form-group">
+						<label for="category">Выберите категорию</label>
+						<select data-create_cart-select_group_category="group" multiple class="form-control" name="category" id="category">
+						{% for category in categories %}
+							<option data-select_container="container" data-select_container-text="text" data-select_container-select="select" value="{{ category.idCategory }}" > {{ category.titleCategory }} </option>
+						{% endfor %}	
+						</select>
+					</div>
+					
+					<div class="form-group">
+						<label for="manufacture">Производитель</label>
+						<textarea class="form-control"  name="manufacture" id="manufacture" rows="1"></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="title">Название</label>
+						<textarea class="form-control"  name="title" id="title" rows="1"></textarea>
+					</div>
+					
+					<div class="form-group">
+						<label for="cost">Стоимость</label>
+						<textarea class="form-control" name="cost" id="cost" rows="1"></textarea>
+					</div>
+
+					<div class="form-group">
+						<label for="description">Описание</label>
+						<textarea class="form-control"  name="description"  id="description" rows="4"></textarea>
+					</div>
+					
+					 <div class="form-group">
+						<label for="image">Картинка</label>
+						<input type="file" class="form-control-file"  name="image" id="image">
+					</div>
+
+					<button type="submit" data-create_cart-submit="click" class="btn btn-primary">Создать</button>
+
+				</form>
+			
+			</div>
+	    </div><!-- end row -->
+     </div>
+	 </div><!-- main router -->
+	 
+{% include  '/twig_templates/footer.twig' %}

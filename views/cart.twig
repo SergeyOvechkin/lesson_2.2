@@ -1,0 +1,92 @@
+
+{% include  '/twig_templates/header.twig' %}
+
+<div data-router_main="router">
+
+     <div data-home_page="container" class="container-fluid" style="margin-top: 10px;">
+	    <div class="row">
+		
+			<div class="col-sm-12 col-md-3">
+				<section class="categories" >
+					<ul class="nav flex-column" data-categories="array">
+					{% for category in categories %}
+								<li  class="nav-item" data-category="container">
+							<a {% if activeCategory == category.idCategory %}
+							     class="nav-link active" 
+								{% else %}
+								 class="nav-link" 
+								{% endif %} 
+							data-category-click="click"  data-category-title="text" data-category-class="class" data-category-data="{{ category.idCategory }}" class="nav-link" href="/category/{{ category.idCategory }}">{{ category.titleCategory }}</a>
+						</li>
+					{% endfor %}
+					</ul>
+				</section>
+			</div>
+			
+			
+			
+			
+			<div class="col-sm-12 col-md-9" data-router_carts="router">
+			
+				<div class="body" data-cart_single="container" >
+				
+					<h1 data-cart_single-title="text" class="mb20" style="margin-bottom: 20px;">{{cart.title}}</h1>
+					
+				<div class="row">
+					
+						<div class="col-md-4">
+							<div class="keyvalue">
+								<h6 class="key card-subtitle mb-2 text-muted">Категория карточки</h6>
+								<a data-cart_single-title_category="text" data-cart_single-data="{{ cart.category }}" data-cart_single-click_category="click" class="value"  href="/category/{{ cart.category }}">
+
+										{{ cart.titleCategory }}
+								</a>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="keyvalue">
+								<h6 class="key card-subtitle mb-2 text-muted">Производитель</h6>
+								<p data-cart_single-manufacture="text" class="value"  href="#">{{ cart.manufacture }}</p>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="keyvalue">
+								<h6 class="key card-subtitle mb-2 text-muted">Стоимость</h6>
+								<p data-cart_single-cost="text" class="value"  >{{ cart.cost }}</p>
+							</div>
+						</div>
+						
+					</div>
+
+					
+					<div class="text-center">
+							<img data-cart_single-src_img="src" src="/static/upload/{{cart.image}}" style="max-width: 70%;" class="rounded" alt="...">
+					</div>
+					
+					<div class="row  align-items-end" style="margin-bottom: 15px; border: 2px solid #007bff;">
+					
+					<div class="col-md-5"   data-cart_single-variant_tmpl="render-variant">
+						
+					{% set templ = cart.variant_tmpl %}				
+					
+					{% include  '/twig_templates/' ~ templ ~ '.twig' %}
+					</div>
+					
+						<div class="col-md-5" >
+							<button type="button" style="margin-bottom: 1rem; margin-top: 15px;" class="btn btn-primary btn-lg">Купить за <span data-cart_single-cost_btn="text" class="cost-btn">{{ cart.cost }}</span></button>
+						</div>
+					</div>		
+	
+					
+					<h2  style="margin-bottom: 15px;">Описание</h2>
+					<p data-cart_single-description="text" style="margin-bottom: 15px;">{{ cart.description }}
+					</p>
+			
+					
+				</div><!-- end section body -->
+			</div>	<!-- end body -->  
+	    </div> <!-- end body -->
+     </div> <!-- end body -->
+</div><!-- main router -->
+
+{% include  '/twig_templates/footer.twig' %}

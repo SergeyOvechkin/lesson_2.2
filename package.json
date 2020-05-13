@@ -1,0 +1,26 @@
+{
+  "name": "htmlix-shop",
+  "version": "1.0.0",
+  "description": "example node server whith htmlix",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "formidable": "^1.2.2",
+    "nedb": "^1.8.0",
+    "twig": "^1.14.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SergeyOvechkin/lesson_2.1.git"
+  },
+  "author": "Maksaev Mikhail",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SergeyOvechkin/lesson_2.1/issues"
+  },
+  "homepage": "https://github.com/SergeyOvechkin/lesson_2.1#readme"
+}
