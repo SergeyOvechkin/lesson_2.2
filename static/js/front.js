@@ -426,7 +426,8 @@ var routes = {
 		routComponent: {
 			
 			router_carts: "carts",
-			router_main: "home_page"
+			router_main: "home_page",
+		
 			
 		}, //компоненты соответствующие данному роуту
 		
