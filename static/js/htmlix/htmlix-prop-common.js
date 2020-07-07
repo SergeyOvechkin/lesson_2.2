@@ -12,7 +12,6 @@ function constructorProps(htmlLink, keyData1, keyData2, eventMethod, pathToConta
 			  
 			  return new PropCommon(htmlLink, propType,  parentContainer, keyData2[0]);
 		  }
-
 	    }else if(keyData2.search("data") == 0){
 			
 			propType = "data";
@@ -41,11 +40,11 @@ function constructorProps(htmlLink, keyData1, keyData2, eventMethod, pathToConta
 		
 		return new PropGroupMix(htmlLink, propType, keyData1, keyData2, pathToContainer, parentContainer, rootLink, newProps);
 				
-	}else  if(eventMethod != undefined && isEmiter(propType, rootLink) != false  ){
+	}else  if(eventMethod != undefined && rootLink.isEmiter(propType) != false  ){
 	  
 		return new PropEventEmiter(htmlLink, propType, keyData2, eventMethod, pathToContainer, parentContainer, rootLink);
 	 
-	}else if( eventMethod != undefined && isEvent(propType) != false ){
+	}else if( eventMethod != undefined && rootLink.isEvent(propType) != false){
 
         return new PropStandartEvent(htmlLink, propType, keyData2, eventMethod, pathToContainer, parentContainer, rootLink);
 	
@@ -77,14 +76,46 @@ function PropSubtype(htmlLink, propType, propName,  pathToComponent, parentCompo
 	  	this.pathToCоmponent = pathToComponent; 
 		this.parent = parentComponent; 
 		this.rootLink = rootLink;
-		this.prop = null;
+		this.prop = null;		
 		this.propName = propName;	
+		if(typeof propName == "object")this.propName = propName[0];
 
 }
 PropSubtype.prototype.component = function(){
 
 	return this.rootLink.state[this.pathToCоmponent];
 }
+PropSubtype.prototype.props = function(propName){
+	
+	return this.parent.props[propName];
+}
+PropSubtype.prototype.methods = function(nameAuxMethod){
+	
+	return this.parent.methods[nameAuxMethod];
+}
+PropSubtype.prototype.$$ = function(eventPropName){
+	
+	return this.rootLink.eventProps[eventPropName];
+}
+PropSubtype.prototype.$ = function(componentName){
+	
+	if(componentName != undefined)return this.rootLink.state[componentName];
+	
+	return this.rootLink;
+}
+PropSubtype.prototype.$methods = function(nameMethod){
+	
+	if(nameMethod != undefined)return this.rootLink.stateMethods[nameMethod];
+
+     return this.rootLink.stateMethods;	
+}
+PropSubtype.prototype.$props = function(nameProp){
+	
+	if(nameMethod != undefined)return this.rootLink.stateProperties[nameProp];	
+	
+	return this.rootLink.stateProperties;
+}
+
 PropSubtype.prototype.removeAllChild = function(){	
 	
 	var children = this.htmlLink.children;
@@ -155,6 +186,10 @@ PropCommon.prototype.setProp = function(value) {
 			this.htmlLink.dataset[ this.parent.name + this.parent.rootLink.capitalizeFirstLetter(this.propName) ] = value;
 			return;
 	
+	}else{
+		
+		console.log("error неправильно указан тип свойства, если тип = aux его нужно создавать с помощью массива ['имя_метода', 'aux']");
+		
 	}
 }
 
@@ -198,6 +233,10 @@ PropCommon.prototype.getProp = function() {
 			
 			return this.htmlLink.dataset[ this.parent.name + this.parent.rootLink.capitalizeFirstLetter(this.propName) ];
 	
+	}else{
+		
+		console.log("error неправильно указан тип свойства, если тип = aux его нужно создавать с помощью массива ['имя_метода', 'aux']");
+		
 	}
 }
 PropCommon.prototype.removeProp = function(value) {
@@ -244,6 +283,10 @@ PropCommon.prototype.removeProp = function(value) {
 				this.htmlLink.removeAttribute(this.isAttr(this.type));
 				return;
 
+	}else{
+		
+		console.log("error неправильно указан тип свойства, если тип = aux его нужно создавать с помощью массива ['имя_метода', 'aux']");
+		
 	}	
 }
 
@@ -284,108 +327,5 @@ PropCommon.prototype.isAttr = function (type){
 
 	return isAttr;
 }
-function isEmiter(emiterName, rootLink_p){
 
-		var isEmiter = false;
 
-			for(var key123 in rootLink_p.eventProps){		
-		if(key123 == emiterName){
-			isEmiter = key123;
-		}
-	}
-
-			return  isEmiter;
-}
-function isEvent (type){
-
-		var isEv = false;
-
-	switch(type){
-
-				case'click':
-		isEv = 'click';
-		break;
-
-				case 'keydown':
-		isEv = 'keydown';
-		break;	
-
-				case'dblclick':
-		isEv = 'dblclick';
-		break;
-
-				case 'contextmenu':
-		isEv = 'contextmenu';
-		break;	
-
-		case'selectstart':
-		isEv = 'selectstart';
-		break;
-
-				case 'mousewheel':
-		isEv = 'mousewheel';
-		break;	
-
-				case'mousemove':
-		isEv = 'mousemove';
-		break;
-
-				case 'mouseout':
-		isEv = 'mouseout';
-		break;	
-
-				case'mouseover':
-		isEv = 'mouseover';
-		break;
-
-				case 'mouseup':
-		isEv = 'mouseup';
-		break;	
-
-				case'mousedown':
-		isEv = 'mousedown';
-		break;
-
-				case 'keypress':
-		isEv = 'keypress';
-		break;	
-
-		case'keyup':
-		isEv = 'keyup';
-		break;
-
-				case 'focus':
-		isEv = 'focus';
-		break;	
-
-				case'blur':
-		isEv = 'blur';
-		break;
-
-				case 'change':
-		isEv = 'change';
-		break;	
-
-				case 'reset':
-		isEv = 'reset';
-		break;	
-
-		case'select':
-		isEv = 'select';
-		break;
-
-				case 'submit':
-		isEv = 'submit';
-		break;	
-
-				case 'abort':
-		isEv = 'abort';
-		break;
-
-				case 'change':
-		isEv = 'change';
-		break;			
-	}
-
-	return isEv;
-}

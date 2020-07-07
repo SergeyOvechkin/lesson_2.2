@@ -1,38 +1,49 @@
 function HTMLixState(StateMap){
+	
+	var _templateVarDOM = false;
+		
 	this.description = StateMap;
-
-
 	this.state = {};
 	this.eventProps = {};
 	this.stateMethods = {};
 	this.stateProperties = {};
 
-		if(StateMap.eventEmiters != undefined){
-
-			     for (var key in StateMap.eventEmiters){ 
-             if(StateMap.eventEmiters[key].behavior != undefined){
-				 
-				 this.eventProps[key] = new EventEmiter(key, StateMap.eventEmiters[key].prop, {}, {}, StateMap.eventEmiters[key].behavior, this);
-				 
-			 }else{
-				 
-				 this.eventProps[key] = new EventEmiter(key, StateMap.eventEmiters[key].prop, {}, {} );
-				 
-			 }
-   		    
-
+	if(StateMap.eventEmiters != undefined){
+		  for (var key in StateMap.eventEmiters){ 
+             if(StateMap.eventEmiters[key].behavior != undefined){				 
+				 this.eventProps[key] = new EventEmiter(key, StateMap.eventEmiters[key].prop, {}, {}, StateMap.eventEmiters[key].behavior, this);				 
+			 }else{				 
+				 this.eventProps[key] = new EventEmiter(key, StateMap.eventEmiters[key].prop, {}, {} );				 
+			 } 		    
 		 }
-	}		
+	}
+    if(StateMap.stateSettings != undefined){		
+		this.stateSettings = StateMap.stateSettings;		
+	}	
 	for (var key in StateMap){
-
-						if(key == "stateSettings"){ 
-
-						this.stateSettings = StateMap[key];
-			continue;
-		}		
+	
 		if(key == "stateMethods"){ 
+		
+			this.stateMethods = StateMap[key];
+			
+			for(var key56 in this.stateMethods){
+				
+                var context256 = this;
+				
+				this.stateMethods[key56] = function(){ 
+				
+				    var fn = StateMap[key][key56];			
+				    							     
+				    return function(){	
 
-						this.stateMethods = StateMap[key];
+                    if(this.rootLink == undefined  && this.description == undefined && this.state == undefined && this.htmlLink == undefined ){
+						
+						return fn.apply(context256, arguments); 				
+					}												
+					return fn.apply(this, arguments); 					
+				}			
+			   }()
+			}			
 			continue;
 		}		
 		if(key == 'stateProperties'){
@@ -40,98 +51,116 @@ function HTMLixState(StateMap){
 			this.stateProperties = StateMap[key];
 			continue;				
 		}		
-		if(key == 'eventEmiters' || key ==  'virtualArrayComponents'){
+		if(key == 'eventEmiters' || key ==  'virtualArrayComponents' || key == "stateSettings"){
 
 						continue;
 		}
 		if(key == "fetchComponents"){
 
-						var context = this;
+			  var context = this;
 			  var StateMap1 = StateMap.fetchComponents;
 			 
-			 if(StateMap.stateSettings == undefined)StateMap.stateSettings = {};
+			  if(StateMap.stateSettings == undefined)StateMap.stateSettings = {};
               if (StateMap.stateSettings.templatePath == undefined) StateMap.stateSettings.templatePath = "/template/template.html";
                 			 
 
-						this.fetchTemplates(function(divEl){
+			this.fetchTemplates(function(divEl){
 				for(var key10 in StateMap1){
 
 
-															var node = divEl.querySelector('[data-'+key10+']');
+						var node = divEl.querySelector('[data-'+key10+']');
 
-												if(node == undefined){
+						if(node == undefined){
 
-												console.log("Error - в Html коде нет атрибута data-"+key10+" для компонента из объекта fetchComponents");
-					}
+							console.log("Error - в Html коде нет атрибута data-"+key10+" для компонента из объекта fetchComponents");
+						}
 
-										var type = node.dataset[key10];
+						var type = node.dataset[key10];
 
 
-															if(type=="array"){
+						if(type=="array"){
 
 									context.arrayInit(node, StateMap1, key10);
 
-							}else if(type=="container"){
+						}else if(type=="container"){
 
 						context.containerInit(node, StateMap1, key10);
 
-					}					
-				}
-				
+						}else{
+							console.log("erorr - неправильно указан тип для контейнера либо массива "+key+" для компонента из объекта fetchComponents");
+						}					
+				}				
 				context.verifyFetchComponents(divEl);
 
 							},  StateMap.stateSettings.templatePath);
 
 						continue;
 		}
-
-				initStandartComponents(this, StateMap, key);
+		initStandartComponents(this, StateMap, key);
+					
 	}
-
-				function initStandartComponents(context, StateMap, key){
+	if(this.stateSettings != undefined && this.stateSettings.templateVar != undefined){
+			
+		createFromVarTemplate(this);
+		
+		this.verifiTemplateVarComponents(_templateVarDOM);					
+	}
+	function initStandartComponents(context, StateMap, key){
 
 				var node = document.querySelector('[data-'+key+']');
+								
+				     if(node == null || node == undefined){
+						 						 
+						 if(context.stateSettings != undefined && context.stateSettings.templateVar != undefined){
+							 
+							    createFromVarTemplate(context);
+								
+								node = _templateVarDOM.querySelector('[data-'+key+']'); 															
+						 }
+					 }
+				if(node == undefined || node == null){
 
-					if(node == undefined){
-
-											console.log("Error - в Html коде нет атрибута data-"+key+" проверьте корректность названия ключей в html");
+						console.log("Error - в Html коде нет атрибута data-"+key+" проверьте корректность названия ключей в html");
 				}
 				var type = node.dataset[key];		
 				if(type=="array"){
 
-								context.arrayInit(node, StateMap, key);			
+					context.arrayInit(node, StateMap, key);			
 
-						}else if(type=="container"){
+				}else if(type=="container"){
 
 					context.containerInit(node, StateMap, key);
 
-
-									}else{
-
-										console.log("erorr - неправильно указан тип для контейнера либо массива "+key);
+				}else{
+						console.log("erorr - неправильно указан тип для контейнера либо массива "+key);
 				}	
 	    }
-
-  // console.log("source-map");		
+		function createFromVarTemplate(context){
+			
+			if(_templateVarDOM == false){
+				_templateVarDOM = document.createElement('div'); 
+				_templateVarDOM.innerHTML = context.stateSettings.templateVar;
+			}				
+		}	
 }
-
+//создает контейнер - компонент (renderType = "container-outer")
 HTMLixState.prototype.containerInit = function(node, StateMap, key){
 
-		if(this.state[key] != undefined)return;
+	if(this.state[key] != undefined)return;
 	if(node == null)node = document.querySelector('[data-'+key+']');
     if(node == null || node == undefined)console.log("error в html разметке не найден контейнер "+key);	
 	if(StateMap[key]== undefined)console.log("error- проверьте корректность parent ключей в html - коде");
 	this.state[key] = new Container(node, key,  StateMap[key].props, StateMap[key].methods, null, key, this);
 
-	}
+}
+//создает компонент - обычный массив (renderType="array")
 HTMLixState.prototype.arrayInit = function(node, StateMap, key){
 
-	       			if(this.state[key] != undefined)return;
+	       	if(this.state[key] != undefined)return;
 			if(node == null)node = document.querySelector('[data-'+key+']');
             if(node == null || node == undefined)console.log("error в html разметке не найден массив "+key);	
 			
-
-									var lengthChildren = node.children.length; 
+		    var lengthChildren = node.children.length; 
 			if(StateMap[key].container == undefined)console.log("error- забыли указать контейнер для массива " +key);
 			var containerHTML = node.querySelectorAll('[data-'+StateMap[key].container+']');
 			
@@ -139,13 +168,9 @@ HTMLixState.prototype.arrayInit = function(node, StateMap, key){
 			
 			if(StateMap[key].selector != undefined) array_selector = StateMap[key].selector;
 
-
-									if(containerHTML.length == 0)console.log("error - в html коде нет атрибута data-"+StateMap[key].container+" либо не создан шаблон для массива "+key);
+		    if(containerHTML.length == 0)console.log("error - в html коде нет атрибута data-"+StateMap[key].container+" либо не создан шаблон для массива "+key);
 			this.state[key] = new HTMLixArray(node, containerHTML[0], this, key, array_selector);
 			
-			
-			
-
 			if(StateMap[key]["arrayProps"] !=undefined ){
 
 								this.state[key]["props"] = {};
@@ -153,9 +178,9 @@ HTMLixState.prototype.arrayInit = function(node, StateMap, key){
 								for (var t=0; t < StateMap[key]["arrayProps"].length; t++){
 
 
-															if(typeof StateMap[key]["arrayProps"][t] == "string"){
-							var htmlLink = this.state[key].htmlLink.querySelectorAll('[data-'+key+'-'+StateMap[key]["arrayProps"][t]+']')[0];
-							if(htmlLink == undefined)htmlLink  = this.state[key].htmlLink;
+						if(typeof StateMap[key]["arrayProps"][t] == "string"){
+												var htmlLink = this.state[key].htmlLink.querySelectorAll('[data-'+key+'-'+StateMap[key]["arrayProps"][t]+']')[0];
+												if(htmlLink == undefined)htmlLink  = this.state[key].htmlLink;
 
 
 
@@ -167,11 +192,30 @@ HTMLixState.prototype.arrayInit = function(node, StateMap, key){
 
 
 
-																							}else{
+						}else{
 
-													var string =  StateMap[key]["arrayProps"][t][0];
+							var string =  StateMap[key]["arrayProps"][t][0];
 
-				 							var selector = StateMap[key]["arrayProps"][t][2];
+				 			var selector = StateMap[key]["arrayProps"][t][2];
+							
+							var type = StateMap[key]["arrayProps"][t][1];
+							
+							if(type == "aux"){
+								
+                                  								
+									 if(StateMap[key]["arrayMethods"][  string ] == undefined)console.log("error название свойства массива "+key+" - "+string+" не совпадает с названием метода");
+									 if(this.state[key].methods == undefined)this.state[key].methods = {};
+									 this.state[key].methods[string] = StateMap[key]["arrayMethods"][  string ].bind( this.state[key]);
+									 continue;
+									 
+							}else if(type == "extend"){
+									 
+									 var isTrue = this.propExtend(StateMap[key]["arrayProps"][t][2], StateMap[key]["arrayProps"][t][3], StateMap[key]["arrayProps"], StateMap[key]["arrayMethods"], StateMap[key]["arrayProps"][t][0], t);
+									 if(isTrue == false)continue;
+									 t--;
+									 continue;
+								 
+							}
 
 														var htmlLinkToProp  = this.state[key].htmlLink;
 
@@ -193,8 +237,7 @@ HTMLixState.prototype.arrayInit = function(node, StateMap, key){
 				}
 			}
 
-
-						var i = 0;
+			var i = 0;
 			if(containerHTML[0].dataset[StateMap[key].container] == "template"){
 				                 
 								 containerHTML[0].dataset[StateMap[key].container] = "container";
@@ -209,9 +252,8 @@ HTMLixState.prototype.arrayInit = function(node, StateMap, key){
 				i = 1;
 
 			}		
-
-
-				for( var j=0, i; i < containerHTML.length; j++, i++){
+			
+			for( var j=0, i; i < containerHTML.length; j++, i++){
 
 						if(containerHTML[i].dataset[StateMap[key].container] != "container"){
 
@@ -221,18 +263,26 @@ HTMLixState.prototype.arrayInit = function(node, StateMap, key){
 						// container23.renderType = "container-inner";
 						this.state[key].data[j] = container23 ;
 
-                        				}
-				if(this.state[key].data.length < lengthChildren ){
+            }
+			if(this.state[key].data.length < lengthChildren ){
 
-										console.log("warn - контейнеров в массиве "+key+" создано меньше чем обьявлено в html, проверьте корректность написания всех ключей в html коде либо удалите лишние элементы не соответствующие контейнеру - "+StateMap[key].container);	
-				}
-             	if(this.state[key].data.length > lengthChildren){
+				console.log("warn - контейнеров в массиве "+key+" создано меньше чем обьявлено в html, проверьте корректность написания всех ключей в html коде либо удалите лишние элементы не соответствующие контейнеру - "+StateMap[key].container);	
+			}
+            if(this.state[key].data.length > lengthChildren){
 
-										console.log("warn - контейнеров "+StateMap[key].container+" в массиве "+key+" создано больше чем обьявлено в html, проверьте что контейнеры распологаются в массиве непосредственно, старайтесь избегать создания порежуточных тегов");
-				}	
+				console.log("warn - контейнеров "+StateMap[key].container+" в массиве "+key+" создано больше чем обьявлено в html, проверьте что контейнеры распологаются в массиве непосредственно, старайтесь избегать создания порежуточных тегов");
+		   }	
 }
-
+//проверяет что созданы все виртуальные массивы при дозагрузке компонентов в fetchTemplates а также вызывает метод - событие onLoadAll
 HTMLixState.prototype.verifyFetchComponents = function(divEl){
+	
+	if( this.verifiTemplateVarComponents(divEl) ){
+
+       		if(this.stateMethods != undefined && this.stateMethods.onLoadAll != undefined)this.stateMethods.onLoadAll/*.bind(this)*/();
+	}
+}
+//проверяет что созданы все виртуальные массивы после создания всех компонентов с опцией templateVar
+HTMLixState.prototype.verifiTemplateVarComponents = function(divEl){
 	
 	if(this.description.virtualArrayComponents != undefined){
 		
@@ -244,216 +294,18 @@ HTMLixState.prototype.verifyFetchComponents = function(divEl){
 
 			      if(containerHTML == null ){
 					  
-					  console.log("Error в шаблоне "+ this.stateSettings.templatePath+" не найдено компонента "+key+" - виртуального массива,  проверьте его наличие и правильность ключей в шаблоне");
-					  return;
+					  console.log("Error в догружаемом шаблоне  не найдено компонента "+key+" - виртуального массива,  проверьте его наличие и правильность ключей в шаблоне");
+					  return false;
 					  
 				  }
-				  this.state[ key ] = new HTMLixArray("virtual-array", containerHTML, this, key, undefined);
-				
-				
+				  this.state[ key ] = new HTMLixArray("virtual-array", containerHTML, this, key, undefined);				
 			}			
 		}
 
-       		if(this.stateMethods != undefined && this.stateMethods.onLoadAll != undefined)this.stateMethods.onLoadAll.bind(this)();
 	}
+	return true;
 }
-HTMLixState.prototype.addContainer=  function (stateNameProp, properties, insertLocation){
-
-
-		if(this.state[stateNameProp] == undefined)console.log("не получается найти компонент"+stateNameProp+"в this.state");
-
-		var stateArray = this.state[stateNameProp];
-		
-		//console.log(stateArray);
-
-		if(stateArray.type != "array"){
-
-				console.log("создать контейнер можно только в массиве array");
-		return;		
-	}
-	if( insertLocation != undefined  && insertLocation != "and" && isNaN(insertLocation)){
-
-				console.log("Введите корректную позицию для вставки контейнера в массив "+stateNameProp);
-		return;
-	}
-	var index = 0;
-
-		if(insertLocation == undefined || insertLocation == "and"  ){ 
-
-			index = stateArray.data.length;
-
-			}else if(typeof insertLocation == 'number' ){
-
-				if(insertLocation > stateArray.data.length) insertLocation = stateArray.data.length;
-
-				index = insertLocation;
-
-			}
-	var Link = stateArray.templateData.cloneNode(true);	
-
-									       var desc =this.description[stateNameProp];
-										   
-										   //console.log(this.description);
-
-	   	   if(desc == undefined){ 
-
-		    if(this.description.virtualArrayComponents != undefined && this.description.virtualArrayComponents[stateNameProp] != undefined){ 
-
-
-										desc = this.description.virtualArrayComponents[stateNameProp];
-							   
-		   }else {
-
-			   		   if(this.description.fetchComponents !=undefined && this.description.fetchComponents[stateNameProp] != undefined){
-
-			   						 desc = this.description.fetchComponents[stateNameProp];
-			   }else{
-
-				   				   console.log("eror- не получается найти описание для компонета "+stateNameProp+" проверьте существуют ли обьекты fetchComponents, virtualArrayComponents в описании, параметре StateMap");
-			   }			  
-		   }
-	   }
-
-
-				var container = new Container(Link, desc.container,  desc.props,
-									desc.methods, index, stateNameProp, this, true, properties);
-
-											//container.renderType = "container-inner";
-
-				var htmlLink = stateArray.htmlLink;
-				
-				if(stateArray.selector != undefined ){
-					
-					htmlLink = htmlLink.querySelector(stateArray.selector);
-					
-					if(htmlLink == null || htmlLink == undefined)console.log("error - не удается найти селектор "+stateArray.selector+" для массива "+stateNameProp);
-					
-				}
-
-	if(insertLocation == undefined || insertLocation == "and" ){ 
-
-				if(this.description.virtualArrayComponents == undefined){ 
-
-						htmlLink.appendChild(Link);
-
-					}else{	
-
-					if(this.description.virtualArrayComponents[stateNameProp] == undefined)htmlLink.appendChild(Link);
-		}	
-		stateArray.data.push(container);
-	}else if(typeof insertLocation == 'number'){
-
-				if(this.description.virtualArrayComponents == undefined ){
-
-				            htmlLink.insertBefore(Link, htmlLink.children[insertLocation]);
-		}else{
-
-
-									if(this.description.virtualArrayComponents[stateNameProp] == undefined)htmlLink.insertBefore(Link, htmlLink.children[insertLocation]);
-		}
-		stateArray.data.splice(insertLocation, 0, container);
-
-		for(var i=insertLocation ; i < stateArray.data.length; i++){
-
-			stateArray.data[i].index = i;
-		}		
-	}
-
-	if(properties != undefined)container.setAllProps(properties);
-
-	return container;
-}
-HTMLixState.prototype.changeOrder = function(stateNameProp, newOrderArr){
-	
-	var stateArray = this.state[stateNameProp];
-	
-	var htmlLink = stateArray.htmlLink;
-	
-	if(stateArray.selector != undefined ){
-					
-					htmlLink = htmlLink.querySelector(stateArray.selector);
-					
-					if(htmlLink == null || htmlLink == undefined)console.log("error - не удается найти селектор "+stateArray.selector+" для массива "+stateNameProp);
-					
-	}	
-	if(newOrderArr.length != stateArray.data.length){
-		
-		console.log("в массиве newOrderArr, должно быть столько же элементов скольео и в массиве stateNameProp.data");
-		return;
-		
-	}	
-	var newData = [];
-	
-	for(var i=0; i<newOrderArr.length; i++){
-		
-		newData.push(stateArray.data[newOrderArr[i]]);
-	}
-	stateArray.data = newData;
-	stateArray.htmlLink.innerHTML = "";
-	
-	for(var k=0; k<stateArray.data.length; k++){
-		
-		stateArray.htmlLink.appendChild(stateArray.data[k].htmlLink);
-		
-		stateArray.data[k].index = k;
-	}
-}
-
-
-HTMLixState.prototype.removeAll = function(stateNameProp, widthChild){	
-
-		if(this.state[stateNameProp].type != "array")return;
-
-		for (var index =0; index < this.state[stateNameProp].data.length; index++){
-			
-			     this.clearContainerProps(stateNameProp, index, widthChild);
-
-			this.state[stateNameProp].data[index].htmlLink.remove();
-	}
-	this.state[stateNameProp].data.length = 0;
-	this.state[stateNameProp].data = [];
-
-}
-
-HTMLixState.prototype.removeByIndex = function(stateNameProp, index, widthChild){
-
-	this.removeByIndexes(stateNameProp, [index], widthChild);
-}
-
-
-HTMLixState.prototype.removeByIndexes = function(stateNameProp, indexArray, widthChild ){
-
-		if(this.state[stateNameProp].type != "array")return;
-	if(indexArray.length == undefined){
-
-				console.log("error - некорректно задан второй аргумент для функции removeByIndexes, проверьте что это не пустой массив, а также номер эелемента для удаления" );
-		return;
-	}
-
-	for(var r = 0; r < indexArray.length; r++){
-
-				if(indexArray[r] > this.state[stateNameProp].data.length-1){
-
-						console.log("error - индекс для удаления "+indexArray[r]+" больше количества элементов в массиве "+stateNameProp);
-			return;
-		}		
-		           this.clearContainerProps(stateNameProp, indexArray[r], widthChild);
-
-		          this.state[stateNameProp].data[indexArray[r]].htmlLink.remove();
-
-			}
-		var newData = this.state[stateNameProp].data.filter(  function(container, i) {
-
-									return ! indexArray.some(function(numb){ return numb == i });
-		});	
-		this.state[stateNameProp].data = newData;
-	for(var i=0 ; i < this.state[stateNameProp].data.length; i++){
-
-			this.state[stateNameProp].data[i].index = i;
-	}
-
-	}
-	
+//удаляет обработчики событий со свойств - слушателей событий, а также дочерние контейнеры со свойств с типами group group-mix и render-variant
 HTMLixState.prototype.clearContainerProps = function(stateNameProp, index, widthChild){
 	
 	                var container = this.state[stateNameProp].data[index];
@@ -477,19 +329,10 @@ HTMLixState.prototype.clearContainerProps = function(stateNameProp, index, width
 					else if(widthChild != undefined && widthChild == true && container.props[key].groupChild != undefined && container.props[key].groupChild.length > 0){
 													
 							container.props[key].clearGroup();
-				
-                    /*
-						                    var indexesArr = [];						
-					for(var it =0; it < container.props[key].groupChild.length; it++){
-						indexesArr.push(container.props[key].groupChild[it].index);
-					}
-					this.removeByIndexes(container.props[key].groupChild[0].pathToCоmponent,  indexesArr, true);
-
-							*/
 				}
 			}
-}	
-
+}
+///метод ля отсеивания повторяющихся полей какого либо массива	
 HTMLixState.prototype.getDifrentFilds = function(array, fild){
 	
 	var newArr = [];
@@ -520,15 +363,12 @@ HTMLixState.prototype.getDifrentFilds = function(array, fild){
 				newArr.push(array[i]);				
 				
 			}
-
 	}
 	return newArr;	
-
 }
-
+//загрузка шаблонов для fetchTemplate option
 HTMLixState.prototype.fetchTemplates = function(callb, templatePath){
-
-			
+	
 		if(templatePath == undefined)console.log("error не указана дериктория для поиска шаблона в настройках .stateSettings.templatePath");
 
 								fetch(templatePath)
@@ -536,11 +376,9 @@ HTMLixState.prototype.fetchTemplates = function(callb, templatePath){
 						if(response.ok) {
 							return response.text();
 						}	
-
             						throw new Error('Network response was not ok');
 					})
 					.then((text) => {
-
 
 						var div = document.createElement('div');
 						div.innerHTML = text;
@@ -551,13 +389,215 @@ HTMLixState.prototype.fetchTemplates = function(callb, templatePath){
 							console.log(error);
 					});
 
-		}
-
-
+}
 HTMLixState.prototype.capitalizeFirstLetter = function(string){
 
 		return string.charAt(0).toUpperCase() + string.slice(1);
 
 	}
+//наследование свойств контейнера	
+HTMLixState.prototype.containerExtend =  function(parentContainerName, props, methods){
+	  
+	          ///описание наследуемого компонента		   
+		  var parCont = this.description[parentContainerName];
+		   if(parCont == undefined &&  this.description.virtualArrayComponents != undefined){
+			   
+			   parCont = this.description.virtualArrayComponents[parentContainerName];
+			   
+		   }else if(parCont == undefined &&  this.description.fetchComponents != undefined){
+			   
+			   parCont = this.description.fetchComponents[parentContainerName];
+		   }
+		   if(parCont == undefined)console.log("error неправильно указано имя наследуемого компонента в container_extend");
+		   		 
+		   var shareProps = parCont.props;
+				
+		  if(parCont.share_props != undefined){
+			  		  
+			  shareProps = shareProps.slice(0, parCont.share_props);
+		  }
+		  for(var u =0; u < shareProps.length; u++){
+			  
+			  var keyProp = shareProps[u];
+			  if(typeof keyProp == "object")keyProp = shareProps[u][0];
+			  
+			  var isPersist = false;
+			  
+			  props.forEach((prop)=>{ 			  
+			             var findProp = prop;						
+						if(typeof findProp == "object")findProp = prop[0];
+						if(findProp == keyProp)isPersist = true;                      					
+			  });
+			  if(isPersist)continue
+			  
+			  props.unshift(shareProps[u]);
+			  			  
+			  if(parCont.methods[keyProp] != undefined){			
+				  
+					methods[keyProp] = parCont.methods[keyProp]; 
+						
+			  }
+		  }		     
+  }
+  //наследование отдельных свойств
+  HTMLixState.prototype.propExtend =  function(parentContainerName, propsOrArrayProps, props, methods, propName, index){
+	        
 
+	  	   ///описание наследуемого компонента		   
+		  var parCont = this.description[parentContainerName];
+		   if(parCont == undefined &&  this.description.virtualArrayComponents != undefined){
+			   
+			   parCont = this.description.virtualArrayComponents[parentContainerName];
 
+			   
+		   }
+		   if(parCont == undefined &&  this.description.fetchComponents != undefined){
+			   
+			   parCont = this.description.fetchComponents[parentContainerName];
+
+		   }
+		   if(parCont == undefined)console.log("error неправильно указано имя  наследуемого компонента в prop_extend");
+		   		 
+		   var shareProps = parCont[propsOrArrayProps];
+		   
+		   var isExtend = false;
+	       
+		   for(var u =0; u < shareProps.length; u++){ 
+		   
+		   			  var keyProp = shareProps[u];
+					if(typeof keyProp == "object")keyProp = shareProps[u][0];
+		           
+				   if(keyProp == propName){
+					   
+					   isExtend = true;
+					   
+					    props[index] = shareProps[u];
+					   
+					   if(propsOrArrayProps == "props" && parCont.methods[keyProp] != undefined){
+						   
+						   methods[keyProp] = parCont.methods[keyProp];
+						   
+					   }else if(propsOrArrayProps == "arrayProps" && parCont.arrayMethods[keyProp] != undefined){
+						   
+						   methods[keyProp] = parCont.arrayMethods[keyProp];
+					   }
+				   }
+				   
+                   				   
+		   }  
+		   if(!isExtend){
+			   
+			   console.log("error свойства "+propName+" в компоненте "+parentContainerName+" не найдено");
+			   return false;
+		   }
+  }
+  
+ HTMLixState.prototype.isEvent = function(type){
+
+		var isEv = false;
+
+	switch(type){
+
+				case'click':
+		isEv = 'click';
+		break;
+
+				case 'keydown':
+		isEv = 'keydown';
+		break;	
+
+				case'dblclick':
+		isEv = 'dblclick';
+		break;
+
+				case 'contextmenu':
+		isEv = 'contextmenu';
+		break;	
+
+		case'selectstart':
+		isEv = 'selectstart';
+		break;
+
+				case 'mousewheel':
+		isEv = 'mousewheel';
+		break;	
+
+				case'mousemove':
+		isEv = 'mousemove';
+		break;
+
+				case 'mouseout':
+		isEv = 'mouseout';
+		break;	
+
+				case'mouseover':
+		isEv = 'mouseover';
+		break;
+
+				case 'mouseup':
+		isEv = 'mouseup';
+		break;	
+
+				case'mousedown':
+		isEv = 'mousedown';
+		break;
+
+				case 'keypress':
+		isEv = 'keypress';
+		break;	
+
+		case'keyup':
+		isEv = 'keyup';
+		break;
+
+				case 'focus':
+		isEv = 'focus';
+		break;	
+
+				case'blur':
+		isEv = 'blur';
+		break;
+
+				case 'change':
+		isEv = 'change';
+		break;	
+
+				case 'reset':
+		isEv = 'reset';
+		break;	
+
+		case'select':
+		isEv = 'select';
+		break;
+
+				case 'submit':
+		isEv = 'submit';
+		break;	
+
+				case 'abort':
+		isEv = 'abort';
+		break;
+
+				case 'change':
+		isEv = 'change';
+		break;			
+	}
+
+	return isEv;
+}
+
+HTMLixState.prototype.isEmiter = function(emiterName){
+
+	var isEmiter = false;
+
+    for(var key123 in this.eventProps){		
+		if(key123 == emiterName){
+			isEmiter = key123;
+		}
+	}
+			return  isEmiter;
+}
+HTMLixState.prototype.$$ = function(emiterName){
+	
+	return this.eventProps[emiterName];
+}

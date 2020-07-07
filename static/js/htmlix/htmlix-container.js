@@ -14,101 +14,54 @@ function Container(htmlLink, containerName,  props, methods, index, pathToContai
 
      var thisCont =  this.rootLink.description[this.pathToCоmponent];
      if(thisCont == undefined)thisCont = this.rootLink.description.fetchComponents[this.pathToCоmponent];	 
-	 // console.log("1");
 	 var parentContainerName = thisCont.container_extend;
 	  
 	  	  if(parentContainerName != undefined){
-           
-          ///описание наследуемого компонента		   
-		  var parCont = this.rootLink.description[parentContainerName];
-		   if(parCont == undefined &&  this.rootLink.description.virtualArrayComponents != undefined){
-			   
-			   parCont = this.rootLink.description.virtualArrayComponents[parentContainerName];
-			   
-		   }else if(parCont == undefined &&  this.rootLink.description.fetchComponents != undefined){
-			   
-			   parCont = this.rootLink.description.fetchComponents[parentContainerName];
-		   }
-		   if(parCont == undefined)console.log("error неправильно указано имя компонента наследуемого контейнера в container_extend");
-		   
-		   if(parCont.share_layout != undefined){
-			   
-			   var layout = document.querySelector('[data-'+parCont.container+']').cloneNode(true); 
-			  // parentHtml.hasAttribute(name)
-			   layout.removeAttribute('data-'+parCont.container);
-			   layout.setAttribute('data-'+thisCont.container, "container");
-			   
-			   for(var t=0; t< parCont.props.length; t++){
-				   
-				   if(typeof parCont.props[t] == "string"){
-	
-					   var prop = layout.querySelector('[data-'+parCont.container+'-'+parCont.props[t]+']');
-				
-					   prop.removeAttribute('data-'+parCont.container+'-'+parCont.props[t]);
-					    prop.setAttribute('data-'+thisCont.container+'-'+parCont.props[t], "container");
-					   
-					   
-				   }
-			   }
-			   
-			   var insert = layout.querySelector(parCont.share_layout);
-			   insert.innerHTML = "";
-			   var ObjParent=insert.parentNode;
-			   ObjParent.replaceChild(this.htmlLink, insert);
-			   
-			  // insert.outerHTML(this.htmlLink); //.appendChild();
-			   
-			   this.htmlLink.removeAttribute('data-'+thisCont.container);
-			   
-			   this.htmlLink = layout;
-			   		   
-			   console.log(layout);			   
-		   }			 
-		   var shareProps = parCont.props;
-		
-		
-		  if(parCont.share_props != undefined){
-			  		  
-			  shareProps = shareProps.slice(0, parCont.share_props);
-		  }
-		  for(var u =0; u < shareProps.length; u++){
 			  
-			  var keyProp = shareProps[u];
-			  if(typeof keyProp == "object")keyProp = shareProps[u][0];
-			  
-			  if(parCont.methods[keyProp] != undefined){
-				  
-				 methods[keyProp] = parCont.methods[keyProp];
-			  }
-		  }		  
-		  props = shareProps.concat(props);
+			  this.rootLink.containerExtend(parentContainerName, props, methods);
 	  }
   }
-  
-
   if(props == undefined)props = [];
   for(var i2 = 0; i2 < props.length; i2++){
 
          if(methods == undefined)methods = {};
 
-		 		 if(typeof props[i2] == "string"){
+		if(typeof props[i2] == "string"){
 
-			 			 	    var htmlLinkToProp = this.htmlLink.querySelector('[data-'+containerName+'-'+props[i2]+']');
+			 	var htmlLinkToProp = this.htmlLink.querySelector('[data-'+containerName+'-'+props[i2]+']');
 
-										if(htmlLinkToProp == undefined)htmlLinkToProp = this.htmlLink;			
+				if(htmlLinkToProp == undefined)htmlLinkToProp = this.htmlLink;			
 
-							this.props[ props[i2] ] = constructorProps(htmlLinkToProp, containerName,	props[i2], methods[ props[i2] ],
-																						this.pathToCоmponent,
-																						this,
-																						this.rootLink,
-																						newProps
-																					);	
-		 }else{
+				this.props[ props[i2] ] = constructorProps(htmlLinkToProp, containerName,	props[i2], methods[ props[i2] ],
+																this.pathToCоmponent,
+																this,
+																this.rootLink,
+																newProps
+															);	
+		}else{
 
 			     				 var string =  props[i2][0];
 
 				 				 var selector = props[i2][2];
-
+								 
+								 var type = props[i2][1];
+								 
+								 if(type == "aux"){
+									 
+									 if(methods[ string ] == undefined)console.log("error название свойства "+string+" не совпадает с названием метода");
+									 if(this.methods == undefined)this.methods = {};
+									 this.methods[string] = methods[ string ].bind(this);
+									 continue;
+									 
+								 }else if(type == "extend"){
+									 
+									 var isTrue = this.rootLink.propExtend(props[i2][2], props[i2][3], props, methods, props[i2][0], i2);
+									 if(isTrue == false)continue;
+									 i2--;
+									 continue;
+								 
+								 }
+									 
 				 				 var  htmlLinkToProp = this.htmlLink;
 
 				 				 if(selector != ""){
@@ -121,8 +74,7 @@ function Container(htmlLink, containerName,  props, methods, index, pathToContai
 												  continue;
 											  }
 				                 }
-
-			     		 				      this.props[ string ] = constructorProps(htmlLinkToProp, 
+			     		 		this.props[ string ] = constructorProps(htmlLinkToProp, 
 				                                   containerName,	
 												   props[i2], 
 												   methods[ string ],
@@ -130,24 +82,19 @@ function Container(htmlLink, containerName,  props, methods, index, pathToContai
 													this,
 												   this.rootLink,
 												   newProps
-																);	
-
+												);	
 		 }
-
-
-		 								}
+	}
        if(methods.onCreatedContainer != undefined ){ 
 
 				this.onCreatedContainer = methods.onCreatedContainer.bind(this)
 
-		if(isRunonCreatedContainer==undefined || isRunonCreatedContainer!=false){
+		 if(isRunonCreatedContainer==undefined || isRunonCreatedContainer!=false){
 			
 			this.onCreatedContainer();
-			//console.log(this);
-		}
-	}
-
-	}
+		 }
+	 }
+}
 Container.prototype.remove = function(widthChild){
 	if(this.index == null){
 
@@ -164,16 +111,10 @@ Container.prototype.remove = function(widthChild){
 		this.renderParent.renderChild = null;
 	
 	}
-	if(widthChild != undefined && widthChild == true){
+	  this.rootLink.state[this.pathToCоmponent].removeIndex([this.index], widthChild);
 
-				this.rootLink.removeByIndexes(this.pathToCоmponent, [this.index], true);
-
-			}else{
-		this.rootLink.removeByIndexes(this.pathToCоmponent, [this.index]);
-	}
       return true;
 }
-
 Container.prototype.setAllProps = function(properties){
 	
 		for(key in properties){
@@ -183,11 +124,9 @@ Container.prototype.setAllProps = function(properties){
 						this.props[key].setProp(properties[key]);
 						
 				}else if(key != "componentName"){
-					//console.log(this);
 					console.log("warn не найден ключь "+key+" в контейнере "+this.name+" index "+this.index+" массива "+this.pathToCоmponent+" проверте правильность названия ключей в объекте properties");
 				}
 	}
-	
 }
 Container.prototype.getAllProps = function(properties){
 	
@@ -208,16 +147,33 @@ Container.prototype.getAllProps = function(properties){
 
 			properties_r[key] = this.props[key].getProp();
 
-		}
-		
+		}		
 	}
-	//console.log( properties_r);
 	return properties_r;
 }	
-	
-
 Container.prototype.component = function(){
-	
-	
+		
 	return this.rootLink.state[this.pathToCоmponent];
+}
+Container.prototype.$ = function(componentName){
+	
+	if(componentName != undefined)return this.rootLink.state[componentName];
+	
+	return this.rootLink;
+}
+Container.prototype.$$ = function(eventPropName){
+	
+	return this.rootLink.eventProps[eventPropName];
+}
+Container.prototype.$methods = function(nameMethod){
+	
+	if(nameMethod != undefined)return this.rootLink.stateMethods[nameMethod];
+
+     return this.rootLink.stateMethods;	
+}
+Container.prototype.$props = function(nameProp){
+	
+	if(nameMethod != undefined)return this.rootLink.stateProperties[nameProp];	
+	
+	return this.rootLink.stateProperties;
 }

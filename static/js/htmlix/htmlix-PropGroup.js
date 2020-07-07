@@ -21,25 +21,7 @@ Object.defineProperty(PropGroup.prototype, 'constructor', {
     value: PropGroup, 
     enumerable: false, // false, чтобы данное свойство не появлялось в цикле for in
     writable: true });
-/*
-PropGroup.prototype.component = function(){
 
-	return this.rootLink.state[this.pathToCоmponent];
-}
-PropGroup.prototype.removeAllChild = function(){	
-	
-	var children = this.htmlLink.children;
-	
-	var count = children.length;
-	
-	for(var p=0; p< count ; p++ ){
-	
-		children[0].remove();
-		
-	}
-	
-}
-*/
 PropGroup.prototype.getProp= function(value){
 				if(value == undefined){
 						
@@ -154,7 +136,6 @@ PropGroup.prototype.removeFromGroup = function(groupID){
 
 				this.groupChild[t].groupId = t;
 	}
-
 }
 PropGroup.prototype.clearGroup = function(){
 	
@@ -168,8 +149,7 @@ PropGroup.prototype.clearGroup = function(){
 
 				indexes.push(this.groupChild[i].index);
 	}
-
-	this.rootLink.removeByIndexes(this.groupChild[0].pathToCоmponent, indexes, true);
+	this.rootLink.state[this.groupChild[0].pathToCоmponent].removeIndex(indexes, true);
 
 	this.groupChild.length = 0;
 }
@@ -190,8 +170,7 @@ PropGroup.prototype.getGroupsArray = function(){
 							  return this.groupArray;
 							  
 						  }
-					  }
-					  
+					  }			  
 				  }					  	
 		}
 	return null;	
