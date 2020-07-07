@@ -404,7 +404,7 @@ HTMLixState.prototype.containerExtend =  function(parentContainerName, props, me
 			   
 			   parCont = this.description.virtualArrayComponents[parentContainerName];
 			   
-		   }else if(parCont == undefined &&  this.description.fetchComponents != undefined){
+		   }if(parCont == undefined &&  this.description.fetchComponents != undefined){
 			   
 			   parCont = this.description.fetchComponents[parentContainerName];
 		   }

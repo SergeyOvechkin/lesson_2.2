@@ -120,8 +120,7 @@ var State = {
       "variant_tmpl", 'title', "title_category", "manufacture", "cost", "description", "cost_btn", 
        "src_img", ["listner_click_on_cart", "emiter-click-on-cart", ""], "data", /*"click",*/ 
 	   ["click", "extend", "categories", "props"]///наследуем свойство из компонента "category"
-   ],
-   
+   ], 
    methods: {
 
     listner_click_on_cart: function(){
@@ -209,7 +208,7 @@ var State = {
 				methods: { 
 				 submit: function(){
 					 
-						this.parent.methods.click_on_submit(this, event, "категория сохранена", "/create/category", "create_category");
+						this.parent.methods.click_on_submit(event, "категория сохранена", "/create/category", "create_category");
 
 									
 				}
@@ -238,11 +237,11 @@ var State = {
 				},
 				submit: function(){
 					
-					this.parent.methods.click_on_submit(this, event, "карточка сохранена", "/create/cart", "create_cart");
+					this.parent.methods.click_on_submit(event, "карточка сохранена", "/create/cart", "create_cart");
 					
 							
 				},
-				click_on_submit: function(context, event, mess, url, form_name){ //вспомогательный метод
+				click_on_submit: function(event, mess, url, form_name){ //вспомогательный метод
 					
 					event.preventDefault();				
 				
@@ -411,7 +410,7 @@ cart_variant_radio: {
 
 var routes = {
 	
-	["/"]: {
+     ["/"]: {
 		
 		first: ["categories", 'carts', "menu", "home_page"], /// компоненты которые есть в html файле указываются в этом массиве, остальные будут загружены с шаблона, в fetch запросе асинхронно
 		routComponent: {
@@ -425,7 +424,7 @@ var routes = {
 		templatePath: "/static/templates/index.html" // папка для загрузки шаблонов
 	},	
 	
-	["/cart/:idCart"]: { //знак : в начале слова - говорит что это параметр и сравенение не требуется, проверяет только его наличие на данной позиции
+    ["/cart/:idCart"]: { //знак : в начале слова - говорит что это параметр и сравенение не требуется, проверяет только его наличие на данной позиции
 		
 		first: ["categories", 'cart_single', "menu", "home_page"], 
 		routComponent: {
@@ -436,7 +435,7 @@ var routes = {
 		templatePath: "/static/templates/index.html"
 	},
 	
-	["/category/:idCategory"]: { 
+    ["/category/:idCategory"]: { 
 		
 		first: ["categories", 'carts', "menu", "home_page"], 
 		routComponent: {
@@ -448,7 +447,7 @@ var routes = {
 		templatePath: "/static/templates/index.html" 
 	},	
 	
-		["/create/category"]: {
+    ["/create/category"]: {
 		
 		first: ["menu", "create_category"], 
 		routComponent:{ 
@@ -458,7 +457,7 @@ var routes = {
 		templatePath: "/static/templates/index.html" 
 	},	
 	
-			["/create/cart/"]: {
+    ["/create/cart/"]: {
 		
 		first: ["menu", "create_cart"], 
 		routComponent:{ 
