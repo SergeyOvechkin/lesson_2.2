@@ -4,7 +4,7 @@
   "description": "example node server whith htmlix",
   "main": "app.js",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "formidable": "^1.2.2",
     "nedb": "^1.8.0",
     "twig": "^1.14.0"
